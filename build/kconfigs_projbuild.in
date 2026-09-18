@@ -1,0 +1,7 @@
+source "/home/lloydbg/.espressif/v6.1-beta1/esp-idf/components/app_update/Kconfig.projbuild"
+source "/home/lloydbg/.espressif/v6.1-beta1/esp-idf/components/bootloader/Kconfig.projbuild"
+source "/home/lloydbg/.espressif/v6.1-beta1/esp-idf/components/esp_app_format/Kconfig.projbuild"
+source "/home/lloydbg/.espressif/v6.1-beta1/esp-idf/components/esp_rom/Kconfig.projbuild"
+source "/home/lloydbg/.espressif/v6.1-beta1/esp-idf/components/esptool_py/Kconfig.projbuild"
+source "/home/lloydbg/.espressif/v6.1-beta1/esp-idf/components/partition_table/Kconfig.projbuild"
+source "/home/lloydbg/Documents/Projects/esp32-projects/src/commandline_esp32/commandline_esp32/main/Kconfig.projbuild"
