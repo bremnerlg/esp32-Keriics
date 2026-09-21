@@ -1,6 +1,0 @@
-"-specs=/home/lloydbg/Documents/Projects/esp32-projects/src/commandline_esp32/commandline_esp32/build/bootloader/specs/picolibc.specs"
--Wno-frame-address
--mlongcalls
--fno-builtin-memcpy
--fno-builtin-memset
--fno-builtin-bzero

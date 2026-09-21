@@ -1,2 +1,0 @@
-source /home/lloydbg/Documents/Projects/esp32-projects/src/commandline_esp32/commandline_esp32/build/bootloader/gdbinit/symbols
-source /home/lloydbg/Documents/Projects/esp32-projects/src/commandline_esp32/commandline_esp32/build/bootloader/gdbinit/connect
