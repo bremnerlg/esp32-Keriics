@@ -5,23 +5,21 @@
 #include "stdlib.h"
 #include "driver/gpio.h"
 #include "stdio.h"
+#include <string>
+#include <iostream>
 
-// string goes into parse_lloydos_command -> command code comes out to determin how to interpret the next expression.
+// string goes into parse_lloydos_command -> command code comes out to determine how to interpret the next expression.
 // Return an error if the command isn't valid.
-char *lds_read_line(char *prompt)
+std::string lds_read_line(const std::string& prompt)
 {
-	return linenoise(prompt);
+	const char* input = linenoise(prompt);
+	return std::string(linenoise(prompt) != nullptr) ? ;
 }
 
-cmd_idx_t parse_lds_cmd(char *line)
+cmd_idx_t parse_lds_cmd(const std::string& line)
 {
-	if (line == NULL)
-		return -ENULL;
 
-	size_t cmd_len;
-	size_t valid_cmd_len;
 	for (int i = 0; i < LDS_CMD_SIZE; ++i) { // compare it against the builtins defined in command_parser.h
-		cmd_len = strlen(line);
 		valid_cmd_len = strlen(&LDS_BUILTIN[0][i]);
 		if (strncmp(line, &LDS_BUILTIN[0][i], 
 			cmd_len < valid_cmd_len ? cmd_len : valid_cmd_len) == 0)
@@ -32,7 +30,7 @@ cmd_idx_t parse_lds_cmd(char *line)
 
 struct token_array *lds_split_line(char *line) // stolen from the brennan.io tutorial
 {
-	uint16_t bufsize = LDS_TOK_BUFSZ, position = 0;
+	std::uint16_t bufsize = LDS_TOK_BUFSZ, position = 0;
 	char **tokens = malloc(bufsize * sizeof(char*));
 	char *token;
 

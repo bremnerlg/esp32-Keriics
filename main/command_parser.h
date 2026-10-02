@@ -1,4 +1,8 @@
-#include <string.h>
+
+#include <array>
+#include <string>
+#include <string_view>
+#include <vector>
 #include "stdint.h"
 
 #define 	ENULL				1
@@ -15,7 +19,7 @@
 typedef int16_t cmd_idx_t;
 typedef int16_t cmd_error_t;
 
-
+using token_array = std::vector<std::string>;
 enum LDS_COMMAND_CODES {
 	LDS_GPIO_SET_MODE,
 	LDS_GPIO_SET_LEVEL,
@@ -23,26 +27,20 @@ enum LDS_COMMAND_CODES {
 	LDS_GPIO_GET_LEVEL,
 };	
 
-
-char *LDS_BUILTIN[] = {
+constexpr std::array<std::string_view, 4> LDS_BUILTIN_CMDS = {
 	"gpio_set_mode",
 	"gpio_set_level",
 	"gpio_reset",
-	"exit",
+	"exit"
 	//"print",
 	//"jump",
 	//"write"
 };
 
-struct token_array {
-	char **tokens;
-	uint16_t len;
-};
 
 struct lds_expression {
 	cmd_idx_t cmd; // turn string command into a code
-	struct token_array *args;
-	size_t cmdlen;
+	token_array args;
 	cmd_error_t error; // 0>= for fine, negative for bad
 };	
 
