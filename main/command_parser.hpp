@@ -1,9 +1,10 @@
-#include <cstdint>
-#include <vector>
-#include <array>
-#include <string>
+#include <iostream>
 #include <string_view>
+#include <cstdint>
+#include <array>
 #include <algorithm>
+#include <ranges>
+#include <vector>
 
 /* ad-hoc convention: on error return '-' then error number macro (e.g. return -ENULL) */
 namespace lds {
@@ -13,14 +14,13 @@ enum class kCmdError {
 	kSuccess, kNull, kCmd, kArg, kOutOfRange
 };
 
-const std::uint8_t kTokBuf = 64;
+const std::uint8_t kTokMax = 64;
 const std::uint8_t kArgMax = 2; 
 const std::uint8_t kEspCmdSz = 128; // allocated space for command names... probably won't ever exceed this many.
-const char* kTokDelim = " \t\r\n\a";
+std::string_view kTokDelim = " \t\r\n\a";
 
 using CmdIdx = std::int16_t;
 using CmdError = std::int16_t;
-using TokenArray = std::array<std::string_view, kArgMax>;
 
 /* The esp commands you can directly execute from the shell */
 
@@ -46,35 +46,42 @@ enum class kCmdCode {
 
 
 
-class CmdExpression {
+class HeapCmdExpression {
 public:
-	CmdExpression(std::string_view line)
+	HeapCmdExpression(std::string_view line)
 	{
 		rawCmd = line;
 		code = ParseLdsCmd(line);
-		cmdArgs = CollectLdsArgs(rawCmd);
+		args = CollectLdsArgs(rawCmd);
 		sz = line.size();
-		return new_lds;
 	}
 private:
 	std::string_view rawCmd;
 	std::size_t sz;
 	kCmdCode code; // turn string command into a code
-	TokenArray cmdArgs;
-	kCmdError error; // 0>= for fine, negative for bad. identifies parsing errors with the CmdExpression
+
+	// went with string_view vec instead of const char* because they know their own size.
+	// slight performance hit from this but better safety.
+	// going dynamic on this to avoid overflows from excessive arg input.
+	std::vector<std::string_view> args; 
+	kCmdError error;
 
 	kCmdCode ParseLdsCmd(const char *userin) // returns an int from the command enum found in command_parser.h
 	{
 
 	}
-	CmdIdx ParseLdsArgs(CmdIdx cmd, const char *arg);
-	TokenArray GetTokensFromRaw(std::string_view rawCmd)
-	{
-		std::string_view::size_type start = rawCmd.find_first_not_of(kTokDelim);
-		
-	}
+	TokenArray ParseLdsArgs(CmdIdx cmd, const char *arg);
 
-};	
+	// stole some code from ashvardanian.com/posts. Thank you!
+	std::vector<std::string_view> SplitTokensFromRaw(std::string_view rawCmd, std::string_view delims) // I'll just leave the delims subject to future change.
+	{
+		std::size_t pos = 0;
+		while (pos < rawCmd.size()) {
+			const std::iterator next_pos = std::find_first_of(delims, pos);
+			args.push_back(rawCmd.substr(pos, next_pos - pos));
+			pos = next_pos == std::string_view::npos ? str.size() : next_pos + 1;
+	}
+};
 
 
 enum class kArgTypes {
