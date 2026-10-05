@@ -1,53 +1,83 @@
-#include <string.h>
-#include "stdint.h"
+#include <cstdint>
+#include <vector>
+#include <array>
+#include <string>
+#include <string_view>
+#include <algorithm>
 
-#define 	ENULL				1
-#define		EINVALCMD			2
-#define 	EINVALARG			3
-
-#define 	LDS_TOK_BUFSZ		64
-#define 	LDS_TOK_DELIM		" \t\r\n\a"
-#define		LDS_CMD_SIZE		6
-#define 	ARG_MAX				2
 /* ad-hoc convention: on error return '-' then error number macro (e.g. return -ENULL) */
+namespace lds {
 
 
-typedef int16_t cmd_idx_t;
-typedef int16_t cmd_error_t;
+enum class kCmdError {
+	kSuccess, kNull, kCmd, kArg, kOutOfRange
+};
+
+const std::uint8_t kTokBuf = 64;
+const std::uint8_t kArgMax = 2; 
+const std::uint8_t kEspCmdSz = 128; // allocated space for command names... probably won't ever exceed this many.
+const char* kTokDelim = " \t\r\n\a";
+
+using CmdIdx = std::int16_t;
+using CmdError = std::int16_t;
+using TokenArray = std::array<std::string_view, kArgMax>;
+
+/* The esp commands you can directly execute from the shell */
 
 
-enum LDS_COMMAND_CODES {
-	LDS_GPIO_SET_MODE,
-	LDS_GPIO_SET_LEVEL,
-	LDS_RESET_GPIO, 
-	LDS_GPIO_GET_LEVEL,
-};	
-
-
-char *LDS_BUILTIN[] = {
+constexpr std::array<const char *, kEspCmdSz> kCmdStrings = {
 	"gpio_set_mode",
 	"gpio_set_level",
 	"gpio_reset",
-	"exit",
-	//"print",
-	//"jump",
-	//"write"
+	"exit"
 };
 
-struct token_array {
-	char **tokens;
-	uint16_t len;
+// These are to serve as indexes for the accepted functions. A command "code" is a value that is return which refers to the index of
+// the command in the cmd string array
+enum class kCmdCode {
+	kGpioSetMode,
+	kGpioSetLevel,
+	kGpioReset,
+	kExit
 };
 
-struct lds_expression {
-	cmd_idx_t cmd; // turn string command into a code
-	struct token_array *args;
-	size_t cmdlen;
-	cmd_error_t error; // 0>= for fine, negative for bad
+
+
+
+
+
+class CmdExpression {
+public:
+	CmdExpression(std::string_view line)
+	{
+		rawCmd = line;
+		code = ParseLdsCmd(line);
+		cmdArgs = CollectLdsArgs(rawCmd);
+		sz = line.size();
+		return new_lds;
+	}
+private:
+	std::string_view rawCmd;
+	std::size_t sz;
+	kCmdCode code; // turn string command into a code
+	TokenArray cmdArgs;
+	kCmdError error; // 0>= for fine, negative for bad. identifies parsing errors with the CmdExpression
+
+	kCmdCode ParseLdsCmd(const char *userin) // returns an int from the command enum found in command_parser.h
+	{
+
+	}
+	CmdIdx ParseLdsArgs(CmdIdx cmd, const char *arg);
+	TokenArray GetTokensFromRaw(std::string_view rawCmd)
+	{
+		std::string_view::size_type start = rawCmd.find_first_not_of(kTokDelim);
+		
+	}
+
 };	
 
 
-enum LDS_ARG_CODES {
+enum class kArgTypes {
 	NUMERIC,
 	FLAG
 };
@@ -55,20 +85,17 @@ enum LDS_ARG_CODES {
 
 
 // parsing functions
-char* lds_read_line(char *prompt); // wrapper for the esp32 linefeed
+const char* lds_read_line(const char *prompt); // wrapper for the esp32 linefeed
 struct lds_expression *init_lds_expression(char *line);
 
-cmd_idx_t parse_lds_cmd(char *userin); // returns an int from the command enum found in command_parser.h
-cmd_idx_t collect_lds_args(cmd_idx_t cmd, char *arg);
-uint8_t is_digit_arg(char *s, size_t len);
 
 // shell builtin commands
-cmd_error_t lds_execute(struct lds_expression *lds_cmd);
-cmd_error_t lds_gpio_set_level(struct token_array *args);
-cmd_error_t lds_gpio_reset(struct token_array *args);
-cmd_error_t lds_gpio_set_mode(struct token_array *args);
+CmdError lds_execute(struct lds_expression *lds_cmd);
+CmdError lds_gpio_set_level(struct token_array *args);
+CmdError lds_gpio_reset(struct token_array *args);
+CmdError lds_gpio_set_mode(struct token_array *args);
 // cmd_error_t lds_gpio_set_mode(struct token_array * args);
-cmd_error_t lds_exit(void);
+CmdError lds_exit(void);
 
 /*
 For later use... Right now haven't enough functions to justify this array.
@@ -83,3 +110,5 @@ cmd_error_t (*builtin_func[]) (struct token_array *) = {
 };
 */
 void lds_loop(void);
+
+} // namespace lds

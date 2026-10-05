@@ -1,38 +1,36 @@
 #include "command_parser.h"
 #include "esp_log.h"
-#include "ctype.h"
 #include "linenoise/linenoise.h"
-#include "stdlib.h"
 #include "driver/gpio.h"
-#include "stdio.h"
-
 // string goes into parse_lloydos_command -> command code comes out to determin how to interpret the next expression.
 // Return an error if the command isn't valid.
-char *lds_read_line(char *prompt)
+
+/* REDESIGNED INTO C++:
+After writing this parser code for the shell I discovered I don't hate myself enough to use C strings
+for structures like expressions and tokens. Really. It's a nightmare. It'll go a lot quicker if I just use
+C++11, then stick to C for the lower-level GPIO read/write operation stuff behind the scenes.
+
+Object-oriented will be used to separate the functional core from the imperative bits. I've discovered after
+many headaches and misgivings about OOP, it actually does work well for turning data into clean modules
+when done correctly (that sound was the death of 1000 sweaty men wearing fedoras).
+*/
+
+const std::string& lds_read_line(const std::string& prompt)
 {
 	return linenoise(prompt);
 }
 
-cmd_idx_t parse_lds_cmd(char *line)
+lds::CmdIdx parse_lds_cmd(const std::string& line)
 {
-	if (line == NULL)
-		return -ENULL;
-
-	size_t cmd_len;
-	size_t valid_cmd_len;
 	for (int i = 0; i < LDS_CMD_SIZE; ++i) { // compare it against the builtins defined in command_parser.h
-		cmd_len = strlen(line);
-		valid_cmd_len = strlen(&LDS_BUILTIN[0][i]);
-		if (strncmp(line, &LDS_BUILTIN[0][i], 
-			cmd_len < valid_cmd_len ? cmd_len : valid_cmd_len) == 0)
-			return i; // produce a number to index the supported command to be interpretted
-	}
+		if (line == LDS_BUILTIN[i])
+			return i;
 	return -EINVALCMD; // if not, then just return an error value and tell the user they goofed.
 }
 
-struct token_array *lds_split_line(char *line) // stolen from the brennan.io tutorial
+lds::token_array lds_split_line(std::string_view line) // stolen from the brennan.io tutorial
 {
-	uint16_t bufsize = LDS_TOK_BUFSZ, position = 0;
+	std::uint16_t bufsize = LDS_TOK_BUFSZ, position = 0;
 	char **tokens = malloc(bufsize * sizeof(char*));
 	char *token;
 
@@ -66,24 +64,6 @@ struct token_array *lds_split_line(char *line) // stolen from the brennan.io tut
 
 
 
-struct lds_expression *init_lds_expression(char *line)
-{
-	struct lds_expression *new_lds = malloc(sizeof(struct lds_expression));
-
-	if (line == NULL) {
-		new_lds->error = -ENULL;
-		return new_lds;
-	}
-	cmd_idx_t cmd_idx = parse_lds_cmd(line);
-	struct token_array *args = lds_split_line(line);
-	uint16_t cmd_len = strlen(line);
-
-	
-	new_lds->cmd = cmd_idx;
-	new_lds->args = args;
-	new_lds->cmdlen = cmd_len;
-	return new_lds;
-}
 
 uint8_t is_digit_arg(char *s, size_t len)
 {
