@@ -35,10 +35,20 @@ private:
 	constexpr uint8_t kArgLenMax = 4; // arg should never be more than 4 chars
 	constexpr uint8_t kArgCntMax = 16;
 	constexpr uint8_t kCmdSizeMax = 128;
-	enum class cmd_code {
-		kSetGpioMode, kSetGpioLevel, kResetGpioPin, kPoke
+	enum class CmdCode {
+		kGpioSetDirection, kGpioGetDirection, kGpioGetLevel, kGpioGetLevel, kGpioResetPin, kPoke
 	};
-	using return_codes = std::tuple<cmd_code cmd, esp_error_t err>;
+
+	constexpr const char* const CmdLiterals[] = {
+		"gpio_set_direction",
+		"gpio_get_direction",
+		"gpio_set_level",
+		"gpio_get_level",
+		"gpio_reset_pin",
+		"poke"
+	};
+
+	using return_codes = std::tuple<CmdCode cmd, esp_error_t err>;
 	
 
 	// The execution will go 
@@ -74,10 +84,12 @@ private:
 		uint8_t ws_cnt = 0;
 		for (int i = 0; i < raw.size(); ++i) {
 			switch(raw[i]) {
-
+			case std::memcmp(
 			}
 		}
 	}
+
+
 
 
 public:
