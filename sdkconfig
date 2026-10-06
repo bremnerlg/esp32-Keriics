@@ -419,7 +419,7 @@ CONFIG_IDF_TARGET_ARCH="xtensa"
 # default:
 CONFIG_IDF_TARGET="esp32"
 # default:
-CONFIG_IDF_INIT_VERSION="6.1.0"
+CONFIG_IDF_INIT_VERSION="$IDF_INIT_VERSION"
 # default:
 CONFIG_IDF_TARGET_ESP32=y
 # default:
@@ -794,18 +794,6 @@ CONFIG_COMPILER_CXX_GLIBCXX_CONSTEXPR_NO_CHANGE=y
 
 #
 # Component config
-#
-
-#
-# !!! MINIMAL_BUILD is enabled !!!
-#
-
-#
-# Only common components and those transitively required by the main component are listed
-#
-
-#
-# If a component configuration is missing, please add it to the main component's requirements
 #
 
 #

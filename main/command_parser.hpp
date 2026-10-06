@@ -1,121 +1,92 @@
 #include <iostream>
 #include <string_view>
-#include <cstdint>
 #include <array>
 #include <algorithm>
 #include <ranges>
 #include <vector>
+#include <cstdlib>
+#include "linenoise.h"
+#include "esp_err.h"
+#include "esp_log.h"
 
-/* ad-hoc convention: on error return '-' then error number macro (e.g. return -ENULL) */
+/* The set standard for this project is C++26 */
+/* std::string_view is used to deal with the reality of stack-only C-style strings in a responsible way. */
+
 namespace lds {
 
-
-enum class kCmdError {
-	kSuccess, kNull, kCmd, kArg, kOutOfRange
-};
-
-const std::uint8_t kTokMax = 64;
-const std::uint8_t kArgMax = 2; 
-const std::uint8_t kEspCmdSz = 128; // allocated space for command names... probably won't ever exceed this many.
-std::string_view kTokDelim = " \t\r\n\a";
-
-using CmdIdx = std::int16_t;
-using CmdError = std::int16_t;
-
-/* The esp commands you can directly execute from the shell */
-
-
-constexpr std::array<const char *, kEspCmdSz> kCmdStrings = {
-	"gpio_set_mode",
-	"gpio_set_level",
-	"gpio_reset",
-	"exit"
-};
-
-// These are to serve as indexes for the accepted functions. A command "code" is a value that is return which refers to the index of
-// the command in the cmd string array
-enum class kCmdCode {
-	kGpioSetMode,
-	kGpioSetLevel,
-	kGpioReset,
-	kExit
-};
-
-
-
-
-
-
-class HeapCmdExpression {
-public:
-	HeapCmdExpression(std::string_view line)
-	{
-		rawCmd = line;
-		code = ParseLdsCmd(line);
-		args = CollectLdsArgs(rawCmd);
-		sz = line.size();
-	}
-private:
-	std::string_view rawCmd;
-	std::size_t sz;
-	kCmdCode code; // turn string command into a code
-
-	// went with string_view vec instead of const char* because they know their own size.
-	// slight performance hit from this but better safety.
-	// going dynamic on this to avoid overflows from excessive arg input.
-	std::vector<std::string_view> args; 
-	kCmdError error;
-
-	kCmdCode ParseLdsCmd(const char *userin) // returns an int from the command enum found in command_parser.h
-	{
-
-	}
-	TokenArray ParseLdsArgs(CmdIdx cmd, const char *arg);
-
-	// stole some code from ashvardanian.com/posts. Thank you!
-	std::vector<std::string_view> SplitTokensFromRaw(std::string_view rawCmd, std::string_view delims) // I'll just leave the delims subject to future change.
-	{
-		std::size_t pos = 0;
-		while (pos < rawCmd.size()) {
-			const std::iterator next_pos = std::find_first_of(delims, pos);
-			args.push_back(rawCmd.substr(pos, next_pos - pos));
-			pos = next_pos == std::string_view::npos ? str.size() : next_pos + 1;
-	}
-};
-
-
-enum class kArgTypes {
-	NUMERIC,
-	FLAG
-};
-
-
-
-// parsing functions
-const char* lds_read_line(const char *prompt); // wrapper for the esp32 linefeed
-struct lds_expression *init_lds_expression(char *line);
-
-
-// shell builtin commands
-CmdError lds_execute(struct lds_expression *lds_cmd);
-CmdError lds_gpio_set_level(struct token_array *args);
-CmdError lds_gpio_reset(struct token_array *args);
-CmdError lds_gpio_set_mode(struct token_array *args);
-// cmd_error_t lds_gpio_set_mode(struct token_array * args);
-CmdError lds_exit(void);
-
 /*
-For later use... Right now haven't enough functions to justify this array.
-cmd_error_t (*builtin_func[]) (struct token_array *) = {
-	&lds_gpio_set_mode,
-	&lds_gpio_set_level,
-	&lds_gpio_reset,
-	&lds_exit
-	// &lds_print,
-	// &lds_jump,
-	// &lds_write
-};
+template <typename key_t, typename value_t, std::size_t N>
+struct StaticMap {
+	std::array<key_t, N> keys;
+	std::array<value_t, N> values;
+	std::size_t size = N;
+}
 */
-void lds_loop(void);
+void main_loop()
+{
+	Shell LDS("> ");
+	while(1) {
+		LDS.prompt()
+	}
+}
 
-} // namespace lds
+class Shell {
+private:
+	constexpr uint8_t kArgLenMax = 4; // arg should never be more than 4 chars
+	constexpr uint8_t kArgCntMax = 16;
+	constexpr uint8_t kCmdSizeMax = 128;
+	enum class cmd_code {
+		kSetGpioMode, kSetGpioLevel, kResetGpioPin, kPoke
+	};
+	using return_codes = std::tuple<cmd_code cmd, esp_error_t err>;
+	
+
+	// The execution will go 
+	// 1. read into cmdBuffer, 2. Parse into expression, 3. Check if expression is valid, 4. Execute.
+	/* The structure of the commands for this are going to be of form
+		C_FUNCTION(ARG1, ARG2, ARG3)
+	*/
+	template <std::size_t arglen, std::size_t argcnt>
+	struct expression {
+		return_codes codes;
+		std::array<const char[arglen], argcnt> args;
+	};
+
+	std::array<const char, kCmdSizeMax> rawCmd; // parse raw buffer into expression structure
+	expression<kArgLenMax, kArgCntMax> ex;
+
+
+	// wrapper over raw esp function
+	const char read_line(const std::array<const char, N>& pr)
+	{
+		return linenoise(prompt);
+	}
+
+	void parse_expression(expression& e)
+	{
+		e.return_codes = DecodeCmd(rawCmd);
+
+	}
+
+	template<std::size_t N>
+	return_codes DecodeCmd(const std::array<const char, N>& raw)
+	{
+		uint8_t ws_cnt = 0;
+		for (int i = 0; i < raw.size(); ++i) {
+			switch(raw[i]) {
+
+			}
+		}
+	}
+
+
+public:
+	Shell(std::string_view prompt)
+	prompt(std::string_view prompt)
+	{
+		rawCmd = read_line(prompt);
+		ex = 
+
+	}
+}
+}; // namespace lds
