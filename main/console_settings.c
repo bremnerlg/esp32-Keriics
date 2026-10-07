@@ -21,9 +21,19 @@
 #include "linenoise/linenoise.h"
 #include "argtable3/argtable3.h"
 
+
 #define CONSOLE_MAX_CMDLINE_ARGS 8
 #define CONSOLE_MAX_CMDLINE_LENGTH 256
 #define CONSOLE_PROMPT_MAX_LEN (32)
+
+
+#ifndef COMMAND_PARSER_HPP_
+#define COMMAND_PARSER_HPP_ 
+
+#include "command_parser.hpp"
+
+#endif
+
 
 char prompt[CONSOLE_PROMPT_MAX_LEN]; // Prompt to be printed before each line
 

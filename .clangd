@@ -1,3 +1,0 @@
-CompileFlags:
-    Add: [-std=c++26]
-    Remove: [-f*, -m*]

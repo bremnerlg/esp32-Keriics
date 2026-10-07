@@ -1,11 +1,3 @@
 {
-  "idf.currentSetup": "C:\\esp\\.espressif\\v6.1\\esp-idf",
-  "idf.customExtraVars": {},
-  "clangd.path": "C:\\Espressif\\tools\\esp-clangd\\esp-21.1.3_20260408\\esp-clangd\\bin\\clangd.exe",
-  "clangd.arguments": [
-    "--background-index",
-    "--query-driver=**",
-    "--compile-commands-dir=c:\\Users\\Lloyd Gill\\source\\repos\\esp32-kernix\\build"
-  ],
-  "idf.port": "COM16"
+    "idf.currentSetup": "/home/bremnerlg/.espressif/v6.1/esp-idf"
 }

@@ -1,6 +1,3 @@
-#include <iostream>
-#include <string_view>
-#include <array>
 #include <algorithm>
 #include <ranges>
 #include <vector>
@@ -8,6 +5,8 @@
 #include "linenoise.h"
 #include "esp_err.h"
 #include "esp_log.h"
+#include <string_view>
+#include <array>
 
 /* The set standard for this project is C++26 */
 /* std::string_view is used to deal with the reality of stack-only C-style strings in a responsible way. */
@@ -22,24 +21,14 @@ struct StaticMap {
 	std::size_t size = N;
 }
 */
-void main_loop()
-{
-	Shell LDS("> ");
-	while(1) {
-		LDS.prompt()
-	}
-}
-
 class Shell {
 private:
-	constexpr uint8_t kArgLenMax = 4; // arg should never be more than 4 chars
-	constexpr uint8_t kArgCntMax = 16;
-	constexpr uint8_t kCmdSizeMax = 128;
-	enum class CmdCode {
-		kGpioSetDirection, kGpioGetDirection, kGpioGetLevel, kGpioGetLevel, kGpioResetPin, kPoke
-	};
+	static constexpr uint8_t kArgLenMax = 4; // arg should never be more than 4 chars
+	static constexpr uint8_t kArgCntMax = 16;
+	static constexpr uint8_t kCmdSizeMax = 128;
+	static constexpr const char cmdDelim = ';';
 
-	constexpr const char* const CmdLiterals[] = {
+	static constexpr const char* CmdLiterals[] = {
 		"gpio_set_direction",
 		"gpio_get_direction",
 		"gpio_set_level",
@@ -48,7 +37,20 @@ private:
 		"poke"
 	};
 
-	using return_codes = std::tuple<CmdCode cmd, esp_error_t err>;
+	enum class kCmdCode {
+		kENoParen, 
+		kENoTerm,
+		kEInvalHandle,
+		kEOverflow,
+		kGpioSetDirection,
+		kGpioGetDirection,
+		kGpioGetLevel,
+		kGpioSetLevel,
+		kGpioResetPin,
+		kPoke
+	};
+
+	using return_codes = std::tuple<kCmdCode, esp_err_t>;
 	
 
 	// The execution will go 
@@ -58,7 +60,7 @@ private:
 	*/
 	template <std::size_t arglen, std::size_t argcnt>
 	struct expression {
-		return_codes codes;
+		kCmdCode code;
 		std::array<const char[arglen], argcnt> args;
 	};
 
@@ -67,27 +69,32 @@ private:
 
 
 	// wrapper over raw esp function
-	const char read_line(const std::array<const char, N>& pr)
+	const char[] read_line(std::string_view prompt)
 	{
 		return linenoise(prompt);
 	}
 
-	void parse_expression(expression& e)
+	template<std::size_t arglen, std::size_t argcnt>
+	void parse_expression(expression<arglen, argcnt>& e)
 	{
-		e.return_codes = DecodeCmd(rawCmd);
+		e.code = DecodeCmd(rawCmd);
 
 	}
 
-	template<std::size_t N>
-	return_codes DecodeCmd(const std::array<const char, N>& raw)
+	kCmdCode DecodeCmd(std::string_view raw)
 	{
-		uint8_t ws_cnt = 0;
-		for (int i = 0; i < raw.size(); ++i) {
-			switch(raw[i]) {
-			case std::memcmp(
-			}
-		}
+		// all commands required cfunction(); formatting. If none of these are found the
+		// command already is wrong. Instead of waiting on the correct characters like
+		// psql, we just reset the command so the user isn't wrestling with his mistakes.
+
+		if (raw.find("(") == std::string_view::npos)
+			return kCmdCode::kENoParen;
+		if (raw.find(")") == std::string_view::npos)
+			return kCmdCode::kENoParen;
+		if (raw.find(";") == std::string_view::npos)
+			return kCmdCode::kENoTerm;
 	}
+		
 
 
 
@@ -101,4 +108,14 @@ public:
 
 	}
 }
+
+void main_loop()
+{
+	Shell LDS("> ");
+	while(1) {
+		LDS.prompt();
+	}
+}
+
+
 }; // namespace lds

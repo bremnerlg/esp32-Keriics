@@ -21,6 +21,14 @@
 #include "cmd_nvs.h"
 #include "console_settings.h"
 
+#ifndef COMMAND_PARSER_HPP_
+#define COMMAND_PARSER_HPP_ 
+
+#include "command_parser.hpp"
+
+#endif
+
+
 /*
  * We warn if a secondary serial console is enabled. A secondary serial console is always output-only and
  * hence not very useful for interactive console applications. If you encounter this warning, consider disabling
