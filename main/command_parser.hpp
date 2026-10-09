@@ -1,11 +1,23 @@
+#ifndef LINENOISE_H_
+#define LINENOISE_H_
+#include "linenoise.h"
+#endif
+
+#ifndef ESP_ERR_H_
+#define ESP_ERR_H_
+#include "esp_err.h"
+#endif
+
+#ifndef ESP_LOG_H_
+#define ESP_LOG_H_
+#include "esp_log.h"
+#endif
+
+#include <string_view>
 #include <algorithm>
 #include <ranges>
 #include <vector>
 #include <cstdlib>
-#include "linenoise.h"
-#include "esp_err.h"
-#include "esp_log.h"
-#include <string_view>
 #include <array>
 
 /* The set standard for this project is C++26 */
@@ -13,29 +25,14 @@
 
 namespace lds {
 
-/*
-template <typename key_t, typename value_t, std::size_t N>
-struct StaticMap {
-	std::array<key_t, N> keys;
-	std::array<value_t, N> values;
-	std::size_t size = N;
-}
-*/
+
+
 class Shell {
 private:
 	static constexpr uint8_t kArgLenMax = 4; // arg should never be more than 4 chars
 	static constexpr uint8_t kArgCntMax = 16;
 	static constexpr uint8_t kCmdSizeMax = 128;
-	static constexpr const char cmdDelim = ';';
-
-	static constexpr const char* CmdLiterals[] = {
-		"gpio_set_direction",
-		"gpio_get_direction",
-		"gpio_set_level",
-		"gpio_get_level",
-		"gpio_reset_pin",
-		"poke"
-	};
+	static constexpr const char kCmdDelim = ';';
 
 	enum class kCmdCode {
 		kENoParen, 
@@ -48,6 +45,21 @@ private:
 		kGpioSetLevel,
 		kGpioResetPin,
 		kPoke
+	};
+
+	struct cmd_handle_t {
+		const char *cmd_lit;
+		kCmdCode code;
+	};
+				
+	
+	static constexpr cmd_handle_t kCmdHandles[] = {
+		{ "gpio_set_direction", kCmdCode::kGpioSetDirection },
+		{ "gpio_get_direction", kCmdCode::kGpioGetDirection },
+		{ "gpio_set_level", kCmdCode::kGpioSetLevel },
+		{ "gpio_get_level", kCmdCode::KGpioGetLevel },
+		{ "gpio_reset_pin", kCmdCode::kGpioResetPin },
+		{ "poke", kCmdCode::kPoke }
 	};
 
 	using return_codes = std::tuple<kCmdCode, esp_err_t>;
@@ -93,6 +105,14 @@ private:
 			return kCmdCode::kENoParen;
 		if (raw.find(";") == std::string_view::npos)
 			return kCmdCode::kENoTerm;
+
+		size_t size = std::size(arr);
+		for (const std::string_view *p = kCmdLiterals, *end = arr + size;
+			p != end; ++p) {
+			if (raw == p) {
+				
+
+		
 	}
 		
 
@@ -101,7 +121,7 @@ private:
 
 public:
 	Shell(std::string_view prompt)
-	prompt(std::string_view prompt)
+	prompt(st::string_view prompt)
 	{
 		rawCmd = read_line(prompt);
 		ex = 

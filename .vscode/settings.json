@@ -1,3 +1,14 @@
 {
-    "idf.currentSetup": "/home/bremnerlg/.espressif/v6.1/esp-idf"
+    "idf.currentSetup": "/home/bremnerlg/.espressif/v6.1/esp-idf",
+    "clangd.path": "/home/bremnerlg/.espressif/tools/esp-clangd/esp-21.1.3_20260408/esp-clangd/bin/clangd",
+    "clangd.arguments": [
+      "--background-index",
+      "--query-driver=**",
+      "--compile-commands-dir=/home/bremnerlg/Documents/Projects/esp32-keriics/build"
+    ],
+    "idf.openOcdConfigs": [
+      "board/esp32-wrover-kit-3.3v.cfg"
+    ],
+    "idf.customExtraVars": {},
+    "cmake.sourceDirectory": "/home/bremnerlg/Documents/Projects/esp32-keriics"
 }
