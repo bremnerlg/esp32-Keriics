@@ -26,19 +26,12 @@
 namespace lds {
 
 
-
-class Shell {
+class Cmd {
 private:
-	static constexpr uint8_t kArgLenMax = 4; // arg should never be more than 4 chars
-	static constexpr uint8_t kArgCntMax = 16;
-	static constexpr uint8_t kCmdSizeMax = 128;
-	static constexpr const char kCmdDelim = ';';
-
 	enum class kCmdCode {
 		kENoParen, 
 		kENoTerm,
 		kEInvalHandle,
-		kEOverflow,
 		kGpioSetDirection,
 		kGpioGetDirection,
 		kGpioGetLevel,
@@ -46,88 +39,102 @@ private:
 		kGpioResetPin,
 		kPoke
 	};
-
-	struct cmd_handle_t {
-		const char *cmd_lit;
-		kCmdCode code;
-	};
-				
 	
-	static constexpr cmd_handle_t kCmdHandles[] = {
-		{ "gpio_set_direction", kCmdCode::kGpioSetDirection },
-		{ "gpio_get_direction", kCmdCode::kGpioGetDirection },
-		{ "gpio_set_level", kCmdCode::kGpioSetLevel },
-		{ "gpio_get_level", kCmdCode::KGpioGetLevel },
-		{ "gpio_reset_pin", kCmdCode::kGpioResetPin },
-		{ "poke", kCmdCode::kPoke }
+	static constexpr uint8_t kArgLenMax = 4;
+	static constexpr uint8_t kArgCntMax = 16;
+	static constexpr uint8_t kCmdSizeMax = 128;
+	static constexpr const char kCmdDelim = ';';
+
+	static constexpr std::array kCmdHandles = {
+		std::string_view{"gpio_set_direction"},
+		std::string_view{"gpio_get_direction"},
+		std::string_view{"gpio_set_level"},
+		std::string_view{"gpio_get_level"},
+		std::string_view{"gpio_reset_pin"},
+		std::string_view{"poke"}
 	};
 
-	using return_codes = std::tuple<kCmdCode, esp_err_t>;
-	
+	kCmdCode CodeFromHandle(std::string_view raw)
+	{
+	}
 
+	kCmdCode code;
+	std::array<const char[arglen], argcnt> args;
+
+public:
+	Cmd(std::string_view handle, std::array<constchar) // keep most of our state changes within this and the change_state function
+	:
+	{
+		code = CodeFromHandle(handle);	
+		
+	}	
+
+};
+
+
+class Shell {
+private:
 	// The execution will go 
-	// 1. read into cmdBuffer, 2. Parse into expression, 3. Check if expression is valid, 4. Execute.
+	// 1. read into cmdBuffer, 2. Parse into Cmd, 4. Execute.
 	/* The structure of the commands for this are going to be of form
 		C_FUNCTION(ARG1, ARG2, ARG3)
 	*/
-	template <std::size_t arglen, std::size_t argcnt>
-	struct expression {
-		kCmdCode code;
-		std::array<const char[arglen], argcnt> args;
-	};
-
-	std::array<const char, kCmdSizeMax> rawCmd; // parse raw buffer into expression structure
-	expression<kArgLenMax, kArgCntMax> ex;
-
 
 	// wrapper over raw esp function
-	const char[] read_line(std::string_view prompt)
+	template<size_t sz>
+	std::array<const char, sz> read_line(std::string_view prompt)
 	{
-		return linenoise(prompt);
+		const char raw* = linenoise(prompt); // linenoise is already heap allocated so we can just take a pointer to it.
+
+		std::array<const char, rawsz> bc_rawline;
+
+		if (rawsz > sz)
+			return bc_rawline;
+
+		for (int i = 0; i < rawsz; i++)
+			bc_rawline[i] = raw[i];
+
+		return bc_rawline;
 	}
 
-	template<std::size_t arglen, std::size_t argcnt>
-	void parse_expression(expression<arglen, argcnt>& e)
-	{
-		e.code = DecodeCmd(rawCmd);
-
-	}
-
-	kCmdCode DecodeCmd(std::string_view raw)
-	{
-		// all commands required cfunction(); formatting. If none of these are found the
-		// command already is wrong. Instead of waiting on the correct characters like
-		// psql, we just reset the command so the user isn't wrestling with his mistakes.
-
-		if (raw.find("(") == std::string_view::npos)
-			return kCmdCode::kENoParen;
-		if (raw.find(")") == std::string_view::npos)
-			return kCmdCode::kENoParen;
-		if (raw.find(";") == std::string_view::npos)
-			return kCmdCode::kENoTerm;
-
-		size_t size = std::size(arr);
-		for (const std::string_view *p = kCmdLiterals, *end = arr + size;
-			p != end; ++p) {
-			if (raw == p) {
-				
-
-		
-	}
-		
-
-
-
-
+	esp_err_t execute(const Cmd& cmd);
+	
+	std::array<const char, cmd::KCmdSizeMax> raw_cmd;
+	Cmd current_cmd;
+	esp_err_t err;
+	bool exit;
 public:
 	Shell(std::string_view prompt)
-	prompt(st::string_view prompt)
+	:
 	{
-		rawCmd = read_line(prompt);
-		ex = 
+		err = ESP_OK;	
+		exit = false;
 
+		while (err == ESP_OK && !quit) {
+			err = main(prompt);
+		}
+	}
+
+
+
+	esp_err_t main(std::string_view prompt)
+	{
+		raw_cmd = readline(prompt);
+		current_cmd = Cmd(prompt);
+
+		if (rawcmd.size() > 0) {
+			err = execute(cmd);		
+		} else {
+			err = ESP_ERR_INVALID_SIZE;
+			return err;
+		}
+		
+		return err;
+		
 	}
 }
+
+
 
 void main_loop()
 {
