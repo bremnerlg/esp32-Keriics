@@ -19,6 +19,7 @@
 #include <vector>
 #include <cstdlib>
 #include <array>
+#include <stderror>
 
 /* The set standard for this project is C++26 */
 /* std::string_view is used to deal with the reality of stack-only C-style strings in a responsible way. */
@@ -26,25 +27,40 @@
 namespace lds {
 
 
+
+// @brief Packs two arrays of equal size into one structure.
+
+// @param k: Function key array to index values.
+// @param v: values to be accessed by [] indexing.
+// @param s: size that BOTH arrays must be.
+
+// @return StaticMap
+template<typename T1, typename T2, std::size_t s>
+struct StaticMap {
+	StaticMap(T1 k, T2 v) :
+	{
+		if (k.size() != v.size() || k.size() == 0 || v.size() == 0) {
+			throw std::invalid_argument();
+		} else {
+			std::copy(k.begin(), k.end(), key.begin());
+			std::copy(v.begin(), v.end(), value.begin());
+		} 
+
+
+	}
+	
+	std::array<T1, s> key;
+	std::array<T2, s> value;
+};
+
 class Cmd {
 private:
-	enum class kCmdCode {
-		kENoParen, 
-		kENoTerm,
-		kEInvalHandle,
-		kGpioSetDirection,
-		kGpioGetDirection,
-		kGpioGetLevel,
-		kGpioSetLevel,
-		kGpioResetPin,
-		kPoke
-	};
-	
 	static constexpr uint8_t kArgLenMax = 4;
 	static constexpr uint8_t kArgCntMax = 16;
 	static constexpr uint8_t kCmdSizeMax = 128;
 	static constexpr const char kCmdDelim = ';';
 
+	static constexpr std::array<esp_err_t
 	static constexpr std::array kCmdHandles = {
 		std::string_view{"gpio_set_direction"},
 		std::string_view{"gpio_get_direction"},
@@ -53,10 +69,6 @@ private:
 		std::string_view{"gpio_reset_pin"},
 		std::string_view{"poke"}
 	};
-
-	kCmdCode CodeFromHandle(std::string_view raw)
-	{
-	}
 
 	kCmdCode code;
 	std::array<const char[arglen], argcnt> args;

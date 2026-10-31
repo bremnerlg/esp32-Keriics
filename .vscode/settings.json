@@ -1,5 +1,5 @@
 {
-    "idf.currentSetup": "/home/bremnerlg/.espressif/v6.1/esp-idf",
+    "idf.currentSetup": "C:/Espressif/frameworks/esp-idf-v4.4.4/",
     "clangd.path": "/home/bremnerlg/.espressif/tools/esp-clangd/esp-21.1.3_20260408/esp-clangd/bin/clangd",
     "clangd.arguments": [
       "--background-index",
@@ -10,5 +10,5 @@
       "board/esp32-wrover-kit-3.3v.cfg"
     ],
     "idf.customExtraVars": {},
-    "cmake.sourceDirectory": "/home/bremnerlg/Documents/Projects/esp32-keriics"
+    "cmake.sourceDirectory": "C:/EZMetrology/esp32-kernix"
 }

@@ -1,0 +1,15 @@
+[submodule "ostep-homework"]
+	path = ostep-homework
+	url = git@github.com:remzi-arpacidusseau/ostep-homework.git
+[submodule "ostep-code"]
+	path = ostep-code
+	url = git@github.com:remzi-arpacidusseau/ostep-code.git
+[submodule "ostep-projects"]
+	path = ostep-projects
+	url = git@github.com:remzi-arpacidusseau/ostep-projects.git
+[submodule "xv6-riscv"]
+	path = xv6-riscv
+	url = git@github.com:mit-pdos/xv6-riscv.git
+[submodule "riscv-gnu-toolchain"]
+	path = riscv-gnu-toolchain
+	url = git@github.com:riscv-collab/riscv-gnu-toolchain.git
