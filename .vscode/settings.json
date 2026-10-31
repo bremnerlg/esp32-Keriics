@@ -9,6 +9,8 @@
     "idf.openOcdConfigs": [
       "board/esp32-wrover-kit-3.3v.cfg"
     ],
-    "idf.customExtraVars": {},
+    "idf.customExtraVars": {
+      "IDF_TARGET": "esp32"
+    },
     "cmake.sourceDirectory": "C:/EZMetrology/esp32-kernix"
 }
