@@ -38,8 +38,9 @@ template<typename T1, typename T2, std::size_t s>
 struct StaticMap {
 	StaticMap(T1 k, T2 v) :
 	{
+		// for the lds specific stuff, I'm going to try to stick to exceptions.
 		if (k.size() != v.size() || k.size() == 0 || v.size() == 0) {
-			throw std::invalid_argument(); // for the lds specific stuff, I'm going to try to stick to exceptions.
+			throw std::invalid_argument(); 
 		} else {
 			std::copy(k.begin(), k.end(), key.begin());
 			std::copy(v.begin(), v.end(), value.begin());
@@ -52,6 +53,20 @@ struct StaticMap {
 	std::array<T2, s> value;
 };
 
+
+
+// @brief This is an idea, but it may be simpler to actually just create
+// individual generic objects for commands that way I don't have to create
+// a new array for each individual variation or hardcode the type of params we take.
+// Idea: maybe create a tuple structure to store arguments for a cmd??
+// could allow for some genericism, but C++14 may be too strict on compile-time
+// information for tuples.
+template <typename T, typename P>
+struct StringIndexer {
+	StringIndexer(const char& s, T (*)(P) func)
+	const char* s;
+	T (*)(P);
+}
 
 // @param addr: address you wish to overwrite
 // @param value: the value you wish to write into addr.
@@ -76,6 +91,11 @@ private:
 	static constexpr uint8_t kArgCntMax = 16;
 	static constexpr uint8_t kCmdSizeMax = 128;
 	static constexpr const char kCmdDelim = ';';
+
+	// @brief arg structure that goes with each individual cmd
+	static struct LdsArgs {
+		std::array<std::uint16_t, kArgCntMax> args;
+	}:
 
 	/* these aren't reused, just doing this to make it more readable. */
 	template <std::size_t sz>
