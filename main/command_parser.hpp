@@ -20,6 +20,7 @@
 #include <cstdlib>
 #include <array>
 #include <exception>
+#include <functional>
 
 
 
@@ -53,20 +54,48 @@ struct StaticMap {
 	std::array<T2, s> value;
 };
 
+// @brief Allows association with an object by cstr.
+template<typename T>
+struct CstrValuePair {
+		KeyValuePair(const char *s, const T& ref)
+		: s(s) 
+		, objectRef(ref)
+		{}
+
+		const char* str;
+		T& objectRef;
+};
 
 
-// @brief This is an idea, but it may be simpler to actually just create
-// individual generic objects for commands that way I don't have to create
-// a new array for each individual variation or hardcode the type of params we take.
-// Idea: maybe create a tuple structure to store arguments for a cmd??
-// could allow for some genericism, but C++14 may be too strict on compile-time
-// information for tuples.
-template <typename T, typename P>
-struct StringIndexer {
-	StringIndexer(const char& s, T (*)(P) func)
-	const char* s;
-	T (*)(P);
-}
+// @brief Construct a lookup table for values using cstr associated with them.
+// size must be known at compile time.
+// @param std::array<CstrValuePair, sz> pairs: Used to create hashes for easy lookup
+template<typename T, std::size_t sz>
+class CstrLookupTable {
+public:
+	CstrLookupTable(const std::array<CstrValuePair<T>, sz>& pairs)
+	{
+		for (int i = 0; i < pairs.size(); i++)
+			hashes[i] = std::hash<const char*>()(pairs.str);
+	}
+	const T& operator[](const char* cstr) 
+	{
+		check(cstr); // TODO: throws if doesn't exist, make sure this is handled somewhere.
+		const std::size_t lookup_hash = std::hash<const char *>()(t cstr);
+		const std::HashArray::iterator index = std::find(hashes.begin(), hashes.end(), lookup_hash);
+		if (std::find(hashes.begin(), hashes.end(), lookup_hash))
+
+	}
+private:
+	using HashArray = std::array<size_t, sz>;
+	HashArray hashes;
+	void check(const char* cstr) // throws if cstr doesn't exist
+	{
+		if
+	}
+};
+
+
 
 // @param addr: address you wish to overwrite
 // @param value: the value you wish to write into addr.
@@ -81,6 +110,7 @@ void poke(void *addr, uint16_t value)
 	else
 		return ESP_FAIL;
 }
+
 class Cmd {
 private:
  
@@ -92,21 +122,17 @@ private:
 	static constexpr uint8_t kCmdSizeMax = 128;
 	static constexpr const char kCmdDelim = ';';
 
-	// @brief arg structure that goes with each individual cmd
-	static struct LdsArgs {
-		std::array<std::uint16_t, kArgCntMax> args;
-	}:
+	// @brief these a functions that simply take a representation of a location
+	// in memory and write a value to it. Poke is the most basic form, but another
+	// good example is taking the gpio number, which esp then converts into a memory address
+	// and writing your state (0 or 1) into it.
+	using std::function<void(std::uint16_t, std::uint16_t)> = write_addr_f;
 
-	/* these aren't reused, just doing this to make it more readable. */
-	template <std::size_t sz>
-	using CmdHandleArray = std::array<kCmdHandle, sz>;
-
+	static std::variant<addr_write_f> cli_funcs;
 	// @brief lds functions wrap esp functions and force them to assume two 16-bit words
 	// as arguments. This simplifies aggregating the functions under one data structure.
-	// Probably not a permanant fixture, but surely has some short-term benefits till I
-	// figure out something else.
 	template <std::size_t sz>
-	using FuncArray = std::array<void(*)(std::uint16_t, std::uint16_t), sz>;
+	using FuncArray = std::array<cli_funcs, sz>;
 
 	/* ------------------------------------------------------------- */
 	/* ------------------------------------------------------------- */
